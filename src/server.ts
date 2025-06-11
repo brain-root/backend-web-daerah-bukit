@@ -27,36 +27,16 @@ dotenv.config();
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
-// Only initialize tables in development mode
-if (process.env.NODE_ENV !== "production") {
-  testConnection()
-    .then(async () => {
-      try {
-        // Initialize all required tables
-        await initializeTables();
-        console.log("Database tables initialized successfully");
-      } catch (error) {
-        console.error("Error initializing database:", error);
-      }
-    })
-    .catch((err) => {
-      console.error("Database connection failed:", err);
-    });
-} else {
-  // In production, just test the connection without initializing tables
-  testConnection().catch((err) =>
-    console.error("Database connection error:", err)
-  );
-}
-
 // Configure middleware
 // Apply our custom CORS middleware first
 app.use(allowCors);
-// Then apply the regular cors middleware
+// Then apply the regular cors middleware with more permissive settings for Vercel
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: "*", // More permissive for debugging - change to specific origins later
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
   })
 );
 app.use(express.json());
@@ -71,6 +51,14 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
+// Test database connection only (without initialization in production)
+// This prevents potential issues with serverless cold starts
+if (process.env.NODE_ENV !== "test") {
+  testConnection().catch((err) => {
+    console.error("Database connection failed:", err);
+  });
+}
+
 // Set up routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -84,14 +72,26 @@ app.get("/", (_req: Request, res: Response) => {
   res.json({
     message: "Welcome to Solok Selatan API",
     environment: process.env.NODE_ENV,
+    endpoints: {
+      tourism: "/api/tourism",
+      business: "/api/business",
+      events: "/api/event",
+      forum: "/api/forum",
+      auth: "/api/auth",
+    },
   });
+});
+
+// Health check endpoint for Vercel
+app.get("/api/health", (_req: Request, res: Response) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 // Error handling
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Start server if not in production (for local development)
+// Start server in non-Vercel environments
 if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

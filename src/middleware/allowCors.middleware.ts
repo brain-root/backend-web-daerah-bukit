@@ -8,36 +8,23 @@ export const allowCors = (
   res: Response,
   next: NextFunction
 ): void => {
-  // Get allowed origin from environment variable or use a default
-  const allowedOrigins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    process.env.CORS_ORIGIN,
-  ].filter(Boolean);
+  // Allow requests from any origin during development
+  res.header("Access-Control-Allow-Origin", "*");
 
-  // Extract the origin from the request
-  const origin = req.headers.origin;
+  // Allow specific headers
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
 
-  // Set CORS headers if origin matches allowed origins or allow all during development
-  if (
-    origin &&
-    (process.env.NODE_ENV === "development" || allowedOrigins.includes(origin))
-  ) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", "true");
+  // Allow specific methods
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  );
 
-    console.log(
-      `[CORS] Allowed origin: ${origin} for ${req.method} ${req.path}`
-    );
-  }
+  // Allow credentials
+  res.header("Access-Control-Allow-Credentials", "true");
 
   // Handle preflight requests
   if (req.method === "OPTIONS") {
@@ -45,6 +32,5 @@ export const allowCors = (
     return;
   }
 
-  // Continue to the next middleware
   next();
 };
