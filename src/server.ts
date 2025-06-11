@@ -27,21 +27,27 @@ dotenv.config();
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
-// Test database connection and initialize tables
-testConnection()
-  .then(async () => {
-    try {
-      // Initialize all required tables
-      await initializeTables();
-      console.log("Database tables initialized successfully");
-    } catch (error) {
-      console.error("Error initializing database:", error);
-    }
-  })
-  .catch((err) => {
-    console.error("Database connection failed:", err);
-    process.exit(1);
-  });
+// Only initialize tables in development mode
+if (process.env.NODE_ENV !== "production") {
+  testConnection()
+    .then(async () => {
+      try {
+        // Initialize all required tables
+        await initializeTables();
+        console.log("Database tables initialized successfully");
+      } catch (error) {
+        console.error("Error initializing database:", error);
+      }
+    })
+    .catch((err) => {
+      console.error("Database connection failed:", err);
+    });
+} else {
+  // In production, just test the connection without initializing tables
+  testConnection().catch((err) =>
+    console.error("Database connection error:", err)
+  );
+}
 
 // Configure middleware
 // Apply our custom CORS middleware first
@@ -75,15 +81,18 @@ app.use("/api/forum", forumRoutes); // Add forum routes
 
 // Base route
 app.get("/", (_req: Request, res: Response) => {
-  res.json({ message: "Welcome to Bukittinggi API" });
+  res.json({
+    message: "Welcome to Solok Selatan API",
+    environment: process.env.NODE_ENV,
+  });
 });
 
 // Error handling
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Start server
-if (process.env.NODE_ENV !== "test") {
+// Start server if not in production (for local development)
+if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
