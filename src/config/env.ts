@@ -22,10 +22,10 @@ interface Env {
 const env: Env = {
   NODE_ENV: process.env.NODE_ENV || "development",
   PORT: parseInt(process.env.PORT || "3000", 10),
-  DB_HOST: process.env.DB_HOST || "aws-mysql.cnoiawuws42w.ap-southeast-1.rds.amazonaws.com",
+  DB_HOST: process.env.DB_HOST || "localhost",
   DB_PORT: parseInt(process.env.DB_PORT || "3306", 10),
-  DB_USER: process.env.DB_USER || "adminrian001",
-  DB_PASSWORD: process.env.DB_PASSWORD || "MySQLamazonadminrian001",
+  DB_USER: process.env.DB_USER || "root",
+  DB_PASSWORD: process.env.DB_PASSWORD || "",
   DB_NAME: process.env.DB_NAME || "solok_selatan_db",
   JWT_SECRET: process.env.JWT_SECRET || "default-development-secret",
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "1d",
