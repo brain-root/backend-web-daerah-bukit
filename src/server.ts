@@ -44,8 +44,15 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from uploads directory
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+// Special handling for uploads directory in serverless environment
+if (process.env.NODE_ENV === "production") {
+  // In production/Vercel, we don't really use the local filesystem for uploads
+  // Instead, you would typically use S3 or another storage service
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+} else {
+  // For local development
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+}
 
 // Simple logger middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {

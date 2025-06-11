@@ -1,17 +1,16 @@
 {
-  "name": "bukittinggi-backend",
+  "name": "solok-selatan-backend",
   "version": "1.0.0",
-  "description": "Backend for Bukittinggi Website",
+  "description": "Backend API for Solok Selatan regional website",
   "main": "dist/server.js",
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "scripts": {
     "start": "node dist/server.js",
-    "dev": "nodemon src/server.ts",
+    "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
-    "vercel-build": "npm run build",
-    "test": "jest"
+    "vercel-build": "npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
