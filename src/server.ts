@@ -15,6 +15,8 @@ import businessRoutes from "./routes/businessRoutes";
 import eventRoutes from "./routes/eventRoutes";
 import forumRoutes from "./routes/forumRoutes";
 import userRoutes from "./routes/userRoutes";
+// Import the debug routes
+import debugRoutes from "./routes/debugRoutes";
 
 // Import middleware
 import { allowCors } from "./middleware/allowCors.middleware";
@@ -65,7 +67,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/tourism", tourismRoutes);
 app.use("/api/business", businessRoutes);
 app.use("/api/event", eventRoutes);
-app.use("/api/forum", forumRoutes); // Add forum routes
+app.use("/api/forum", forumRoutes);
+app.use("/api/debug", debugRoutes); // Add debug routes
 
 // Base route
 app.get("/", (_req: Request, res: Response) => {

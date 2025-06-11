@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "Backend for Bukittinggi Website",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts",
     "build": "tsc",
+    "vercel-build": "npm run build",
     "test": "jest"
   },
   "dependencies": {
