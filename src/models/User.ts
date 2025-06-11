@@ -178,12 +178,13 @@ export default class UserModel {
       LIMIT ? OFFSET ?
     `;
 
-    const [[{ total }], rows] = await Promise.all([
+    const [countResult, usersResult] = await Promise.all([
       pool.execute<(RowDataPacket & { total: number })[]>(countQuery),
       pool.execute<User[]>(query, [limit, offset]),
     ]);
 
-    const totalCount = total;
+    const totalCount = countResult[0][0].total;
+    const rows = usersResult[0];
     const totalPages = Math.ceil(totalCount / limit);
 
     return {
