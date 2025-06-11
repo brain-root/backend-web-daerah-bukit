@@ -3,8 +3,14 @@ import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 
-// Ensure all upload directories exist on server start
+// Ensure upload directories exist on server start - but only in non-serverless environments
 const createUploadDirectories = () => {
+  // Skip directory creation in serverless environments
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    console.log("Running in serverless environment, skipping directory creation");
+    return;
+  }
+
   try {
     console.log("Initializing upload directories...");
     const baseDir = path.join(process.cwd(), "uploads");
@@ -29,61 +35,36 @@ const createUploadDirectories = () => {
     console.log("Upload directories initialized successfully");
   } catch (error) {
     console.error("Error creating upload directories:", error);
-    throw error;
+    // Don't throw error, just log it - this allows the app to continue
   }
 };
 
 // Initialize directories immediately
 createUploadDirectories();
 
-// Tourism storage configuration
-const tourismStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = path.join(process.cwd(), "uploads", "tourism");
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    const fileName = `${uuidv4()}-${file.originalname.replace(/\s+/g, "-")}`;
-    console.log(`Generated filename for upload: ${fileName}`);
-    cb(null, fileName);
-  },
-});
+// Create a memory storage for serverless environments
+const memoryStorage = multer.memoryStorage();
 
-// Business storage configuration
-const businessStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = path.join(process.cwd(), "uploads", "business");
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    const fileName = `${uuidv4()}-${file.originalname.replace(/\s+/g, "-")}`;
-    cb(null, fileName);
-  },
-});
+// Use appropriate storage based on environment
+const getStorage = (directory: string) => {
+  // In serverless environment, use memory storage
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    return memoryStorage;
+  }
 
-// Events storage configuration
-const eventStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = path.join(process.cwd(), "uploads", "events");
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    const fileName = `${uuidv4()}-${file.originalname.replace(/\s+/g, "-")}`;
-    cb(null, fileName);
-  },
-});
-
-// Profile storage configuration
-const profileStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = path.join(process.cwd(), "uploads", "profiles");
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    const fileName = `${uuidv4()}-${file.originalname.replace(/\s+/g, "-")}`;
-    cb(null, fileName);
-  },
-});
+  // In regular environment, use disk storage
+  return multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      const dir = path.join(process.cwd(), "uploads", directory);
+      cb(null, dir);
+    },
+    filename: (_req, file, cb) => {
+      const fileName = `${uuidv4()}-${file.originalname.replace(/\s+/g, "-")}`;
+      console.log(`Generated filename for upload: ${fileName}`);
+      cb(null, fileName);
+    },
+  });
+};
 
 // File filter for image uploads
 const imageFilter = (
@@ -102,40 +83,31 @@ const imageFilter = (
 
 // Create and export multer instances
 export const upload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, cb) => {
-      const dir = path.join(process.cwd(), "uploads", "general");
-      cb(null, dir);
-    },
-    filename: (_req, file, cb) => {
-      const fileName = `${uuidv4()}-${file.originalname.replace(/\s+/g, "-")}`;
-      cb(null, fileName);
-    },
-  }),
+  storage: getStorage("general"),
   fileFilter: imageFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 export const tourismUpload = multer({
-  storage: tourismStorage,
+  storage: getStorage("tourism"),
   fileFilter: imageFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 export const businessUpload = multer({
-  storage: businessStorage,
+  storage: getStorage("business"),
   fileFilter: imageFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 export const eventUpload = multer({
-  storage: eventStorage,
+  storage: getStorage("events"),
   fileFilter: imageFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 export const profileUpload = multer({
-  storage: profileStorage,
+  storage: getStorage("profiles"),
   fileFilter: imageFilter,
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
 });

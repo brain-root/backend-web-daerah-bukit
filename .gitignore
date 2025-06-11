@@ -27,6 +27,9 @@ yarn-error.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Uploads
+# Uploads - exclude contents but keep structure with .gitkeep files
 /uploads/*
 !/uploads/.gitkeep
+!/uploads/*/
+uploads/*/*
+!/uploads/*/.gitkeep
