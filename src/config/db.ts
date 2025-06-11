@@ -12,34 +12,28 @@ const dbConfig = {
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME || "webdaerah",
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: process.env.NODE_ENV === "production" ? 5 : 10, // Lower limit for production
   queueLimit: 0,
   namedPlaceholders: true,
+  connectTimeout: 60000, // Longer timeout for cloud deployments
 };
 
-// Create a function to get connection instead of maintaining a pool
-// This is better for serverless environments
-const getConnection = async () => {
-  return await mysql.createConnection(dbConfig);
-};
-
-// For compatibility with existing code
+// Create connection pool
 const pool = mysql.createPool(dbConfig);
 
 // Test database connection
 const testConnection = async (): Promise<void> => {
   try {
-    const connection = await getConnection();
+    const connection = await pool.getConnection();
     console.log("Database connection established successfully.");
-    await connection.end();
+    connection.release();
   } catch (error) {
     console.error("Error connecting to database:", error);
-    // Don't exit process in production as it will terminate the serverless function
     if (process.env.NODE_ENV !== "production") {
       process.exit(1);
     }
   }
 };
 
-// Export connection functions
-export { pool, getConnection, testConnection };
+// Export pool and connection test function
+export { pool, testConnection };
